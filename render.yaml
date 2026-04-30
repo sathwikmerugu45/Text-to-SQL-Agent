@@ -1,0 +1,44 @@
+services:
+  # ── 1. FastAPI Backend Service ──────────────────────────────────────────────
+  - type: web
+    name: sqlmind-api
+    env: python
+    region: ohio
+    plan: free
+    # During the build phase, we install dependencies, download the SQLite database, 
+    # and build the ChromaDB vector index. Because this happens in the build phase,
+    # the data persists across free-tier sleep cycles!
+    buildCommand: |
+      pip install -r requirements.txt
+      python -m scripts.setup_chinook
+      python -m scripts.index_schema
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false # User must enter this manually in the Render dashboard
+      - key: OPENAI_API_KEY
+        value: ""   # Forces the use of local, free SentenceTransformers
+      - key: LLM_MODEL
+        value: "nvidia/nemotron-3-super-120b-a12b:free"
+      - key: LLM_TEMPERATURE
+        value: "0"
+
+  # ── 2. Streamlit Frontend Service ───────────────────────────────────────────
+  - type: web
+    name: sqlmind-web
+    env: python
+    region: ohio
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run frontend/app.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: API_URL
+        fromService:
+          type: web
+          name: sqlmind-api
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: OPENROUTER_API_KEY
+        fromService:
+          type: web
+          name: sqlmind-api
+          envVarKey: OPENROUTER_API_KEY

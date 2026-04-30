@@ -52,7 +52,7 @@ footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-API_BASE = "http://localhost:8000"
+API_BASE = os.getenv("API_URL", "http://localhost:8000")
 
 st.title("📊 System Status")
 st.caption("Real-time diagnostics of SQLMind components and upstream OpenRouter models.")
