@@ -13,6 +13,7 @@ from typing import List
 
 import chromadb
 from chromadb.utils import embedding_functions
+from chromadb.config import Settings
 
 from backend.config import (
     CHROMA_PERSIST_DIR,
@@ -110,7 +111,10 @@ def build_schema_index(force: bool = False) -> None:
     Args:
         force: If True, deletes and rebuilds the collection from scratch.
     """
-    client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
+    client = chromadb.PersistentClient(
+        path=CHROMA_PERSIST_DIR,
+        settings=Settings(anonymized_telemetry=False)
+    )
 
     if OPENAI_API_KEY:
         logger.info("Using OpenAI embeddings (text-embedding-ada-002)")

@@ -9,6 +9,7 @@ from functools import lru_cache
 
 import chromadb
 from chromadb.utils import embedding_functions
+from chromadb.config import Settings
 
 from backend.config import (
     CHROMA_PERSIST_DIR,
@@ -26,7 +27,10 @@ def _get_collection():
     Returns a cached ChromaDB collection handle.
     lru_cache ensures we only open the DB once per process.
     """
-    client = chromadb.PersistentClient(path=CHROMA_PERSIST_DIR)
+    client = chromadb.PersistentClient(
+        path=CHROMA_PERSIST_DIR,
+        settings=Settings(anonymized_telemetry=False)
+    )
 
     if OPENAI_API_KEY:
         emb_fn = embedding_functions.OpenAIEmbeddingFunction(
