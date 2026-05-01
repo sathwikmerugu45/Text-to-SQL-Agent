@@ -64,18 +64,22 @@ db_status = "outage"
 chroma_status = "outage"
 indexed_tables = 0
 
-try:
-    res = requests.get(f"{API_BASE}/health", timeout=5)
-    res.raise_for_status()
-    data = res.json()
-    api_status = "operational"
-    if data.get("database"):
-        db_status = "operational"
-    if data.get("chroma_tables_indexed", 0) > 0:
-        chroma_status = "operational"
-        indexed_tables = data.get("chroma_tables_indexed")
-except Exception:
-    pass
+with st.spinner("Checking backend health (may take 30-60s if backend is waking up on Render free tier)..."):
+    for _attempt in range(3):  # retry up to 3 times
+        try:
+            res = requests.get(f"{API_BASE}/health", timeout=15)
+            res.raise_for_status()
+            data = res.json()
+            api_status = "operational"
+            if data.get("database"):
+                db_status = "operational"
+            if data.get("chroma_tables_indexed", 0) > 0:
+                chroma_status = "operational"
+                indexed_tables = data.get("chroma_tables_indexed")
+            break  # success — stop retrying
+        except Exception:
+            import time
+            time.sleep(5)  # wait 5s before retrying
 
 # Status Summary
 overall_status = "operational"

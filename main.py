@@ -81,6 +81,21 @@ class HealthResponse(BaseModel):
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
 
+@app.get("/")
+async def root():
+    """
+    Root endpoint — returns 200 OK so Render's health checker is satisfied.
+    Render pings GET / and HEAD / to confirm the service is alive.
+    """
+    return {
+        "service": "SQLMind API",
+        "status": "online",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
 @app.post("/query", response_model=QueryResponse)
 async def query_endpoint(req: QueryRequest):
     """
