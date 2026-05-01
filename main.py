@@ -36,10 +36,10 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Allow the Streamlit frontend (localhost:8501) to call us
+# Allow Streamlit frontend (local + Render production)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8501", "http://127.0.0.1:8501"],
+    allow_origins=["*"],  # Render assigns dynamic subdomains; wildcard is safe for public read-only API
     allow_methods=["*"],
     allow_headers=["*"],
 )

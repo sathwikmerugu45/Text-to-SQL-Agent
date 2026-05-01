@@ -127,6 +127,28 @@ footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
+# ── Helpers ───────────────────────────────────────────────────────────────────
+def _wake_up_backend(api_url: str, max_wait: int = 90) -> bool:
+    """
+    Ping /health repeatedly until the backend wakes up (Render free tier sleep).
+    Returns True if backend came online, False if it timed out.
+    """
+    import time
+    status_box = st.empty()
+    for elapsed in range(max_wait):
+        try:
+            r = requests.get(f"{api_url}/health", timeout=5)
+            if r.status_code == 200:
+                status_box.empty()
+                return True
+        except Exception:
+            pass
+        status_box.info(f"⏳ Backend is waking up... ({elapsed + 1}s) — Render free tier may take up to 60s on first request.")
+        time.sleep(1)
+    status_box.empty()
+    return False
+
+
 # ── Session State ──────────────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -271,12 +293,25 @@ if prompt:
         
     # Process assistant response
     with st.chat_message("assistant"):
-        with st.spinner("SQLMind is thinking..."):
+        # ── Step 1: Wake up the backend if it's sleeping ────────────────────
+        backend_alive = _wake_up_backend(api_url)
+        if not backend_alive:
+            err_msg = (
+                "❌ **Backend is not responding.** The server took too long to wake up.\n\n"
+                "On Render's free tier, the backend can take up to 60 seconds after a period of inactivity. "
+                "Please wait 30 seconds and try again."
+            )
+            st.error(err_msg)
+            st.session_state.messages.append({"role": "assistant", "content": err_msg})
+            st.stop()
+
+        # ── Step 2: Submit the actual query ─────────────────────────────────
+        with st.spinner("SQLMind is thinking... (LLM inference may take up to 2 minutes)"):
             try:
                 response = requests.post(
                     f"{api_url}/query",
                     json={"question": prompt},
-                    timeout=120,
+                    timeout=300,   # 5 minutes — backend wake + LLM + retry logic
                 )
                 response.raise_for_status()
                 data = response.json()
@@ -344,11 +379,20 @@ if prompt:
                     "id": len(st.session_state.messages)
                 })
 
+            except requests.exceptions.ReadTimeout:
+                err_msg = (
+                    "⏱️ **Request timed out after 5 minutes.**\n\n"
+                    "The AI model is under heavy load or all free models are rate-limited. "
+                    "Please try again in a few minutes — the models will recover automatically."
+                )
+                st.error(err_msg)
+                st.session_state.messages.append({"role": "assistant", "content": err_msg})
             except requests.exceptions.ConnectionError:
-                err_msg = "❌ Cannot reach the API. Make sure `uvicorn main:app` is running."
+                err_msg = "❌ **Cannot reach the API.** The backend server may have crashed. Please check the backend logs on Render."
                 st.error(err_msg)
                 st.session_state.messages.append({"role": "assistant", "content": err_msg})
             except requests.exceptions.HTTPError as e:
-                err_msg = f"❌ API error {response.status_code}: {response.json().get('detail', str(e))}"
+                err_msg = f"❌ **API error {response.status_code}:** {response.json().get('detail', str(e))}"
                 st.error(err_msg)
                 st.session_state.messages.append({"role": "assistant", "content": err_msg})
+
