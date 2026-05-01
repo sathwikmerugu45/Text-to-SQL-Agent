@@ -24,6 +24,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Suppress annoying ChromaDB telemetry errors
+logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
+
 app = FastAPI(
     title="Self-Healing Text-to-SQL Agent",
     description=(
