@@ -14,6 +14,9 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(message)s",
 )
+# Mute ChromaDB telemetry noise — the posthog client has a known bug in 0.5.x
+logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
+logging.getLogger("chromadb").setLevel(logging.WARNING)
 
 from backend.db.connection import test_connection
 from backend.rag.schema_indexer import build_schema_index

@@ -24,6 +24,9 @@ from backend.db.connection import get_connection
 
 logger = logging.getLogger(__name__)
 
+# Mute ChromaDB telemetry noise — posthog client has a known bug in chromadb 0.5.x
+logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
+
 
 def _get_all_tables() -> List[str]:
     """Return all user table names (excludes SQLite system tables)."""

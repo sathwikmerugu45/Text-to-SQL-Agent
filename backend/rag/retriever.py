@@ -20,6 +20,9 @@ from backend.config import (
 
 logger = logging.getLogger(__name__)
 
+# Mute ChromaDB telemetry noise — posthog client has a known bug in chromadb 0.5.x
+logging.getLogger("chromadb.telemetry.product.posthog").setLevel(logging.CRITICAL)
+
 
 @lru_cache(maxsize=1)
 def _get_collection():
