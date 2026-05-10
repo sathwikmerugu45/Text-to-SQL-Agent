@@ -171,22 +171,7 @@ curl -X POST http://localhost:8000/query \
 
 ---
 
-## Interview Talking Points
 
-**Q: Why LangGraph instead of just chaining prompts?**  
-A: LangGraph gives you a proper state machine with typed state, conditional edges, and a persistent state object. Each retry enriches `AgentState` with the previous SQL and error, so the LLM has cumulative context — not just the last error.
-
-**Q: How does Schema RAG prevent hallucinations?**  
-A: Before generating SQL, the schema retriever embeds the user's question and does cosine similarity search in ChromaDB to find the most relevant table definitions. The LLM is told "these are the actual columns available" — not guessing from training data.
-
-**Q: What prevents infinite loops?**  
-A: The `retry_count` field in `AgentState`. The conditional edge `should_retry_or_succeed()` checks `retry_count >= MAX_RETRIES` and routes to `max_retry_handler_node` instead of the generator — a dead-end that returns a graceful error.
-
-**Q: How is this different from ChatGPT writing SQL?**  
-A: ChatGPT has no memory of its own failures, doesn't know your actual schema, and can't execute queries. This agent executes real SQL, reads real PostgreSQL errors, updates state, and self-corrects — it's an autonomous loop, not a one-shot prompt.
-
-**Q: How did you make the SQL execution safe?**  
-A: Two layers — (1) a regex guard in `executor.py` that rejects any non-SELECT statement before it reaches the DB, and (2) a PostgreSQL read-only transaction via `conn.set_session(readonly=True)`, so even if the guard is bypassed, the DB won't mutate.
 
 ---
 
