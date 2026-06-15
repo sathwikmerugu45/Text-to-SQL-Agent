@@ -34,7 +34,7 @@ services:
     env: python
     region: ohio
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements-frontend.txt
     startCommand: streamlit run frontend/app.py --server.port $PORT --server.address 0.0.0.0
     envVars:
       - key: PYTHON_VERSION

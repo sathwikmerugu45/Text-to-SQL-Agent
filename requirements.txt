@@ -8,6 +8,9 @@ langgraph==0.2.28
 chromadb==0.5.5
 
 # ── Embeddings (free local fallback) ──────────────────────────────────────────
+# CPU-only torch — saves ~1.5 GB vs the default CUDA build on Render
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
 sentence-transformers==3.0.1
 
 # ── Database ──────────────────────────────────────────────────────────────────

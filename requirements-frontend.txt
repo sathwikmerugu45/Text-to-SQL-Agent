@@ -1,0 +1,6 @@
+# ── Frontend-only dependencies ────────────────────────────────────────────────
+# Minimal set for the Streamlit frontend service on Render.
+# No torch, no langchain, no chromadb — saves ~1.5 GB and 10+ min build time.
+streamlit==1.37.1
+pandas==2.2.2
+requests==2.32.3
