@@ -204,7 +204,7 @@ with st.sidebar:
 
 # ── Main Chat Interface ────────────────────────────────────────────────────────
 # Top bar
-st.markdown("<h2 style='text-align:center; color:#cdd6f4;'>SQLMind Dashboard</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align:center; color:#cdd6f4;'>Conversational SQL Engine</h2>", unsafe_allow_html=True)
 
 # Empty State
 if not st.session_state.messages:

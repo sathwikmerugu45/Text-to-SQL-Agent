@@ -19,7 +19,7 @@ import logging
 from typing import Any
 
 from langchain_openai import ChatOpenAI
-from langchain.schema import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 
 from backend.config import (
     LLM_MODEL,
